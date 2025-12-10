@@ -1,450 +1,191 @@
-class WordGame {
-    constructor() {
-        this.currentWord = '';
-        this.currentType = '';
-        this.score = 0;
-        this.lives = 3;
-        this.streak = 0;
-        this.correctAnswers = 0;
-        this.totalWords = 30;
-        this.gameActive = false;
-        this.words = {
-            noun: [],
-            adjective: [],
-            verb: [],
-            pronoun: [],
-            particle: []
-        };
-        
-        this.initializeElements();
-        this.loadWordLists();
-        this.setupEventListeners();
-        this.setupAudio();
-    }
-    
-    initializeElements() {
-        this.wordDisplay = document.getElementById('word-text');
-        this.scoreDisplay = document.getElementById('score');
-        this.streakDisplay = document.getElementById('streak-counter');
-        this.correctDisplay = document.getElementById('correct-counter');
-        this.progressFill = document.getElementById('progress-fill');
-        this.progressText = document.getElementById('progress-text');
-        this.feedbackMessage = document.getElementById('feedback-message');
-        this.feedbackDetails = document.getElementById('feedback-details');
-        this.heartsContainer = document.getElementById('hearts');
-        this.apiLog = document.getElementById('api-log-content');
-        this.connectedStatus = document.getElementById('connected-status');
-        
-        this.buttons = {
-            start: document.getElementById('start-btn'),
-            hint: document.getElementById('hint-btn'),
-            skip: document.getElementById('skip-btn'),
-            restart: document.getElementById('restart-btn'),
-            share: document.getElementById('share-btn')
-        };
-        
-        this.categoryBtns = document.querySelectorAll('.category-btn');
-        
-        // Endscreen Elements
-        this.endModal = document.getElementById('end-modal');
-        this.finalScore = document.getElementById('final-score');
-        this.finalCorrect = document.getElementById('final-correct');
-        this.finalStreak = document.getElementById('final-streak');
-        this.finalLives = document.getElementById('final-lives');
-        this.apiStatus = document.getElementById('api-status-text');
-        this.apiSpinner = document.getElementById('api-spinner');
-    }
-    
-    setupAudio() {
-        this.audio = {
-            correct: document.getElementById('correct-sound'),
-            wrong: document.getElementById('wrong-sound'),
-            life: document.getElementById('life-sound'),
-            win: document.getElementById('win-sound')
-        };
-        
-        // Preload Audio
-        Object.values(this.audio).forEach(audio => {
-            audio.load();
-        });
-    }
-    
-    async loadWordLists() {
-        try {
-            // Hier würden Sie die TXT-Dateien laden
-            // Für Demo-Zwecke verwenden wir eingebettete Listen
-            this.words.noun = ["Haus", "Baum", "Mutter", "Vater", "Kind", "Schule", "Buch", "Stift", "Tisch", "Fenster", "Tür", "Bett", "Auto", "Fahrrad", "Ball"];
-            this.words.adjective = ["groß", "klein", "schnell", "langsam", "hell", "dunkel", "fröhlich", "traurig", "bunt", "rund", "eckig", "schwer", "leicht", "hart", "weich"];
-            this.words.verb = ["gehen", "spielen", "lesen", "schreiben", "malen", "lachen", "springen", "sehen", "hören", "sagen", "fragen", "antworten", "kommen", "laufen", "rennen"];
-            this.words.pronoun = ["ich", "du", "er", "sie", "es", "wir", "ihr", "sie", "mein", "dein", "sein", "ihr", "unser", "euer", "mich"];
-            this.words.particle = ["nicht", "auch", "noch", "schon", "immer", "oft", "vielleicht", "gerade", "besonders", "doch", "denn", "ja", "nein", "ziemlich", "recht"];
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wortarten Wettkampf - LearningView.org</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Kopfbereich -->
+        <header class="header">
+            <div class="logo-section">
+                <div class="logo">
+                    <i class="fas fa-brain"></i>
+                    <span>Wortarten</span>
+                </div>
+                <div class="connected-status" id="connected-status">
+                    <i class="fas fa-unlink"></i>
+                    <span>Offline</span>
+                </div>
+            </div>
             
-            this.logToAPI('Wortlisten erfolgreich geladen');
-        } catch (error) {
-            console.error('Fehler beim Laden der Wortlisten:', error);
-            this.logToAPI('Fehler beim Laden der Wortlisten');
-        }
-    }
-    
-    setupEventListeners() {
-        // Kategorie-Buttons
-        this.categoryBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                if (!this.gameActive) return;
-                const selectedType = e.currentTarget.dataset.type;
-                this.checkAnswer(selectedType);
-            });
-        });
-        
-        // Steuerungs-Buttons
-        this.buttons.start.addEventListener('click', () => this.startGame());
-        this.buttons.hint.addEventListener('click', () => this.showHint());
-        this.buttons.skip.addEventListener('click', () => this.skipWord());
-        this.buttons.restart.addEventListener('click', () => this.restartGame());
-        this.buttons.share.addEventListener('click', () => this.shareResults());
-        
-        // Enter-Taste für schnelle Wiederholung
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && this.gameActive) {
-                this.getNextWord();
-            }
-        });
-    }
-    
-    startGame() {
-        this.gameActive = true;
-        this.score = 0;
-        this.lives = 3;
-        this.streak = 0;
-        this.correctAnswers = 0;
-        
-        this.updateDisplays();
-        this.updateHearts();
-        this.buttons.start.disabled = true;
-        this.buttons.hint.disabled = false;
-        this.buttons.skip.disabled = false;
-        
-        this.categoryBtns.forEach(btn => btn.disabled = false);
-        
-        this.feedbackMessage.textContent = 'Wähle die richtige Wortart!';
-        this.feedbackDetails.textContent = '';
-        
-        this.getNextWord();
-        this.logToAPI('Spiel gestartet');
-    }
-    
-    getRandomWord() {
-        const types = ['noun', 'adjective', 'verb', 'pronoun', 'particle'];
-        const randomType = types[Math.floor(Math.random() * types.length)];
-        const wordList = this.words[randomType];
-        
-        if (!wordList || wordList.length === 0) {
-            return { word: 'Fehler', type: randomType };
-        }
-        
-        const randomWord = wordList[Math.floor(Math.random() * wordList.length)];
-        return { word: randomWord, type: randomType };
-    }
-    
-    getNextWord() {
-        if (this.correctAnswers >= this.totalWords) {
-            this.endGame();
-            return;
-        }
-        
-        const { word, type } = this.getRandomWord();
-        this.currentWord = word;
-        this.currentType = type;
-        
-        this.wordDisplay.textContent = word;
-        
-        // Animation
-        this.wordDisplay.style.transform = 'scale(1.1)';
-        setTimeout(() => {
-            this.wordDisplay.style.transform = 'scale(1)';
-        }, 200);
-    }
-    
-    checkAnswer(selectedType) {
-        if (!this.gameActive) return;
-        
-        const isCorrect = selectedType === this.currentType;
-        
-        if (isCorrect) {
-            this.handleCorrectAnswer();
-        } else {
-            this.handleWrongAnswer(selectedType);
-        }
-        
-        this.updateDisplays();
-    }
-    
-    handleCorrectAnswer() {
-        this.score += 10;
-        this.streak++;
-        this.correctAnswers++;
-        
-        // Audio-Feedback
-        this.audio.correct.currentTime = 0;
-        this.audio.correct.play().catch(e => console.log('Audio error:', e));
-        
-        // Visuelles Feedback
-        this.feedbackMessage.innerHTML = `<span style="color: #10b981">✓ Richtig!</span>`;
-        this.feedbackDetails.textContent = `"${this.currentWord}" ist ein ${this.getTypeName(this.currentType)}`;
-        
-        // Bonus-Leben bei 5er-Serie
-        if (this.streak % 5 === 0 && this.lives < 5) {
-            this.lives++;
-            this.updateHearts();
-            this.audio.life.currentTime = 0;
-            this.audio.life.play().catch(e => console.log('Audio error:', e));
-            
-            // Animation
-            this.heartsContainer.style.transform = 'scale(1.2)';
-            setTimeout(() => {
-                this.heartsContainer.style.transform = 'scale(1)';
-            }, 300);
-            
-            this.logToAPI(`5er-Serie erreicht! +1 Leben (${this.lives}/5)`);
-        }
-        
-        // Nächstes Wort nach kurzer Pause
-        setTimeout(() => {
-            this.getNextWord();
-        }, 1500);
-    }
-    
-    handleWrongAnswer(selectedType) {
-        this.streak = 0;
-        this.lives--;
-        
-        // Audio-Feedback
-        this.audio.wrong.currentTime = 0;
-        this.audio.wrong.play().catch(e => console.log('Audio error:', e));
-        
-        // Visuelles Feedback
-        this.feedbackMessage.innerHTML = `<span style="color: #e63946">✗ Falsch!</span>`;
-        this.feedbackDetails.textContent = `"${this.currentWord}" ist ein ${this.getTypeName(this.currentType)}, nicht ${this.getTypeName(selectedType)}`;
-        
-        this.updateHearts();
-        
-        if (this.lives <= 0) {
-            setTimeout(() => this.endGame(), 1500);
-        } else {
-            // Nächstes Wort nach kurzer Pause
-            setTimeout(() => {
-                this.getNextWord();
-            }, 1500);
-        }
-    }
-    
-    showHint() {
-        if (!this.gameActive) return;
-        
-        this.buttons.hint.disabled = true;
-        this.score = Math.max(0, this.score - 5);
-        
-        // Zeige ersten Buchstaben
-        const hint = this.currentWord.charAt(0) + '...';
-        this.feedbackMessage.innerHTML = `<span style="color: #f59e0b">💡 Tipp: Beginnt mit "${hint}"</span>`;
-        this.feedbackDetails.textContent = `5 Punkte abgezogen`;
-        
-        this.updateDisplays();
-        
-        // Reaktiviere Button nach 3 Sekunden
-        setTimeout(() => {
-            this.buttons.hint.disabled = false;
-        }, 3000);
-    }
-    
-    skipWord() {
-        if (!this.gameActive) return;
-        
-        this.score = Math.max(0, this.score - 10);
-        this.streak = 0;
-        
-        this.feedbackMessage.innerHTML = `<span style="color: #6c757d">⏭️ Übersprungen</span>`;
-        this.feedbackDetails.textContent = `10 Punkte abgezogen`;
-        
-        this.updateDisplays();
-        this.getNextWord();
-    }
-    
-    updateDisplays() {
-        this.scoreDisplay.textContent = this.score;
-        this.streakDisplay.textContent = this.streak;
-        this.correctDisplay.textContent = `${this.correctAnswers}/${this.totalWords}`;
-        
-        const progressPercent = (this.correctAnswers / this.totalWords) * 100;
-        this.progressFill.style.width = `${progressPercent}%`;
-        this.progressText.textContent = `${this.correctAnswers}/${this.totalWords} Wörter`;
-    }
-    
-    updateHearts() {
-        const hearts = this.heartsContainer.querySelectorAll('i');
-        hearts.forEach((heart, index) => {
-            if (index < this.lives) {
-                heart.className = 'fas fa-heart live';
-            } else {
-                heart.className = 'fas fa-heart lost';
-            }
-        });
-    }
-    
-    getTypeName(type) {
-        const names = {
-            noun: 'Nomen',
-            adjective: 'Adjektiv',
-            verb: 'Verb',
-            pronoun: 'Pronomen',
-            particle: 'Partikel'
-        };
-        return names[type] || type;
-    }
-    
-    async endGame() {
-        this.gameActive = false;
-        this.buttons.hint.disabled = true;
-        this.buttons.skip.disabled = true;
-        this.categoryBtns.forEach(btn => btn.disabled = true);
-        
-        // Audio-Feedback
-        this.audio.win.currentTime = 0;
-        this.audio.win.play().catch(e => console.log('Audio error:', e));
-        
-        // Endscreen anzeigen
-        this.showEndScreen();
-        
-        // Ergebnisse an LearningView.org senden
-        await this.sendToLearningView();
-    }
-    
-    showEndScreen() {
-        this.finalScore.textContent = this.score;
-        this.finalCorrect.textContent = `${this.correctAnswers}/${this.totalWords}`;
-        this.finalStreak.textContent = this.streak;
-        this.finalLives.textContent = this.lives;
-        
-        this.endModal.style.display = 'flex';
-    }
-    
-    async sendToLearningView() {
-        this.apiStatus.textContent = 'Sende Ergebnisse an LearningView.org...';
-        this.apiSpinner.style.display = 'block';
-        
-        try {
-            // API-Daten vorbereiten
-            const gameData = {
-                game: 'wortarten-trainer',
-                score: this.score,
-                correctAnswers: this.correctAnswers,
-                totalQuestions: this.totalWords,
-                streak: this.streak,
-                livesRemaining: this.lives,
-                timestamp: new Date().toISOString(),
-                playerId: this.generatePlayerId(),
-                accuracy: Math.round((this.correctAnswers / this.totalWords) * 100)
-            };
-            
-            this.logToAPI(`📤 Sende Daten: ${JSON.stringify(gameData, null, 2)}`);
-            
-            // Simulation einer API-Anfrage
-            await new Promise(resolve => setTimeout(resolve, 2000));
-            
-            // Hier würde der echte API-Call stehen:
-            // const response = await fetch('https://api.learningview.org/game-results', {
-            //     method: 'POST',
-            //     headers: { 'Content-Type': 'application/json' },
-            //     body: JSON.stringify(gameData)
-            // });
-            
-            // Erfolg simulieren
-            const success = Math.random() > 0.1; // 90% Erfolgschance
-            
-            if (success) {
-                this.apiStatus.textContent = '✓ Ergebnisse erfolgreich gesendet!';
-                this.apiSpinner.style.display = 'none';
-                this.apiStatus.parentElement.className = 'api-status success';
-                this.connectedStatus.innerHTML = '<i class="fas fa-link"></i><span>Verbunden</span>';
-                this.connectedStatus.classList.add('connected');
-                
-                this.logToAPI('✅ Erfolgreich an LearningView.org gesendet');
-                this.buttons.share.disabled = false;
-            } else {
-                throw new Error('API nicht erreichbar');
-            }
-            
-        } catch (error) {
-            this.apiStatus.textContent = '✗ Verbindung fehlgeschlagen. Ergebnisse lokal gespeichert.';
-            this.apiSpinner.style.display = 'none';
-            this.apiStatus.parentElement.className = 'api-status error';
-            
-            this.logToAPI(`❌ API-Fehler: ${error.message}`);
-            
-            // Lokal speichern als Fallback
-            this.saveResultsLocally();
-        }
-    }
-    
-    saveResultsLocally() {
-        const results = {
-            score: this.score,
-            correctAnswers: this.correctAnswers,
-            timestamp: new Date().toLocaleString()
-        };
-        
-        localStorage.setItem('wortarten-last-game', JSON.stringify(results));
-        this.logToAPI('💾 Ergebnisse lokal gespeichert');
-    }
-    
-    generatePlayerId() {
-        let id = localStorage.getItem('wortarten-player-id');
-        if (!id) {
-            id = 'player_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('wortarten-player-id', id);
-        }
-        return id;
-    }
-    
-    logToAPI(message) {
-        const timestamp = new Date().toLocaleTimeString();
-        const logEntry = `[${timestamp}] ${message}\n`;
-        this.apiLog.textContent = logEntry + this.apiLog.textContent;
-        
-        // Alte Logs begrenzen
-        const logs = this.apiLog.textContent.split('\n');
-        if (logs.length > 10) {
-            this.apiLog.textContent = logs.slice(0, 10).join('\n');
-        }
-    }
-    
-    restartGame() {
-        this.endModal.style.display = 'none';
-        this.buttons.start.disabled = false;
-        this.feedbackMessage.textContent = 'Klicke auf "Spiel starten" um zu beginnen!';
-        this.feedbackDetails.textContent = '';
-        this.wordDisplay.textContent = 'Bereit?';
-    }
-    
-    shareResults() {
-        const text = `Ich habe im Wortarten-Spiel ${this.score} Punkte erreicht! ${this.correctAnswers}/${this.totalWords} richtig.`;
-        
-        if (navigator.share) {
-            navigator.share({
-                title: 'Mein Wortarten-Ergebnis',
-                text: text,
-                url: window.location.href
-            });
-        } else {
-            // Fallback: Kopieren in Zwischenablage
-            navigator.clipboard.writeText(text);
-            alert('Ergebnis in Zwischenablage kopiert!');
-        }
-    }
-}
+            <div class="game-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Punkte</span>
+                    <span class="stat-value" id="score">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Serie</span>
+                    <span class="stat-value" id="streak-counter">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Richtig</span>
+                    <span class="stat-value" id="correct-counter">0/30</span>
+                </div>
+            </div>
+        </header>
 
-// Spiel initialisieren, wenn DOM geladen ist
-document.addEventListener('DOMContentLoaded', () => {
-    const game = new WordGame();
-    window.wordGame = game; // Für Debugging verfügbar machen
-});
+        <!-- Lebenspunkte -->
+        <div class="lives-container">
+            <div class="lives-title">Lebenspunkte</div>
+            <div class="hearts" id="hearts">
+                <i class="fas fa-heart live"></i>
+                <i class="fas fa-heart live"></i>
+                <i class="fas fa-heart live"></i>
+            </div>
+            <div class="streak-bonus" id="streak-bonus">
+                <i class="fas fa-bolt"></i>
+                <span>+1 Leben bei 5er Serie</span>
+            </div>
+        </div>
+
+        <!-- Hauptspielbereich -->
+        <main class="game-area">
+            <div class="word-display-container">
+                <div class="current-word" id="current-word">
+                    <span id="word-text">Bereit?</span>
+                </div>
+                <div class="word-counter">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="progress-text">
+                        <span id="progress-text">0/30 Wörter</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kategorie-Buttons -->
+            <div class="category-buttons">
+                <button class="category-btn noun-btn" data-type="noun" data-color="brown">
+                    <i class="fas fa-mountain"></i>
+                    <span>Nomen</span>
+                </button>
+                
+                <button class="category-btn verb-btn" data-type="verb" data-color="blue">
+                    <i class="fas fa-running"></i>
+                    <span>Verben</span>
+                </button>
+                
+                <button class="category-btn adj-btn" data-type="adjective" data-color="yellow">
+                    <i class="fas fa-star"></i>
+                    <span>Adjektiv</span>
+                </button>
+                
+                <button class="category-btn particle-btn" data-type="particle" data-color="green">
+                    <i class="fas fa-dot-circle"></i>
+                    <span>Partikel</span>
+                </button>
+                
+                <button class="category-btn pronoun-btn" data-type="pronoun" data-color="orange">
+                    <i class="fas fa-user"></i>
+                    <span>Pronomen</span>
+                </button>
+            </div>
+
+            <!-- Feedback-Bereich -->
+            <div class="feedback-area">
+                <div class="feedback-message" id="feedback-message">
+                    Wähle die richtige Wortart für das angezeigte Wort!
+                </div>
+                <div class="feedback-details" id="feedback-details"></div>
+            </div>
+
+            <!-- Steuerungs-Buttons -->
+            <div class="control-buttons">
+                <button id="start-btn" class="control-btn start-btn">
+                    <i class="fas fa-play"></i>
+                    Spiel starten
+                </button>
+                <button id="hint-btn" class="control-btn hint-btn" disabled>
+                    <i class="fas fa-lightbulb"></i>
+                    Tipp (3s)
+                </button>
+                <button id="skip-btn" class="control-btn skip-btn" disabled>
+                    <i class="fas fa-forward"></i>
+                    Überspringen (-1 Punkt)
+                </button>
+            </div>
+        </main>
+
+        <!-- API-Log -->
+        <div class="api-log" id="api-log">
+            <div class="api-log-header">
+                <i class="fas fa-server"></i>
+                <span>LearningView.org Verbindung</span>
+            </div>
+            <div class="api-log-content" id="api-log-content">
+                Warte auf Spielende...
+            </div>
+        </div>
+    </div>
+
+    <!-- Audio-Elemente -->
+    <audio id="correct-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3" preload="auto"></audio>
+    <audio id="wrong-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3" preload="auto"></audio>
+    <audio id="life-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" preload="auto"></audio>
+    <audio id="win-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" preload="auto"></audio>
+
+    <!-- Endscreen Modal -->
+    <div class="modal-overlay" id="end-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <i class="fas fa-trophy"></i>
+                <h2>Spiel beendet!</h2>
+            </div>
+            
+            <div class="result-stats">
+                <div class="result-item">
+                    <span class="result-label">Endpunktzahl:</span>
+                    <span class="result-value" id="final-score">0</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Richtig:</span>
+                    <span class="result-value" id="final-correct">0/30</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Beste Serie:</span>
+                    <span class="result-value" id="final-streak">0</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Verbleibende Leben:</span>
+                    <span class="result-value" id="final-lives">3</span>
+                </div>
+            </div>
+
+            <div class="api-status" id="api-status">
+                <div class="spinner" id="api-spinner">
+                    <i class="fas fa-spinner fa-spin"></i>
+                </div>
+                <span id="api-status-text">Sende Ergebnisse an LearningView.org...</span>
+            </div>
+
+            <div class="modal-buttons">
+                <button id="restart-btn" class="modal-btn restart-btn">
+                    <i class="fas fa-redo"></i>
+                    Neues Spiel
+                </button>
+                <button id="share-btn" class="modal-btn share-btn" disabled>
+                    <i class="fas fa-share"></i>
+                    Teilen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
