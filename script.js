@@ -76,7 +76,7 @@ const WORD_LISTS = {
     ]
 };
 
-// Spielzustand
+// Spielzustand mit Fehlerstatistik
 const GameState = {
     currentWord: '',
     currentType: '',
@@ -85,7 +85,10 @@ const GameState = {
     streak: 0,
     bestStreak: 0,
     correctAnswers: 0,
-    totalWords: 30,
+    wrongAnswers: 0,  // NEU: Fehler zählen
+    skippedAnswers: 0, // NEU: Übersprungene zählen
+    totalAnswers: 0,   // NEU: Gesamte Antworten zählen
+    neededCorrect: 30, // Benötigte richtige Antworten zum Gewinnen
     gameActive: false
 };
 
@@ -115,6 +118,9 @@ const elements = {
     finalStreak: document.getElementById('final-streak'),
     finalLives: document.getElementById('final-lives'),
     finalAccuracy: document.getElementById('final-accuracy'),
+    finalWrong: document.getElementById('final-wrong'),  // NEU: Fehler-Anzeige
+    finalSkipped: document.getElementById('final-skipped'), // NEU: Übersprungene
+    finalTotal: document.getElementById('final-total'),   // NEU: Gesamte Versuche
     apiStatus: document.getElementById('api-status-text'),
     apiSpinner: document.getElementById('api-spinner'),
     apiStatusContainer: document.getElementById('api-status')
@@ -140,6 +146,7 @@ function setupEventListeners() {
         btn.addEventListener('click', (e) => {
             if (!GameState.gameActive) return;
             const selectedType = e.currentTarget.dataset.type;
+            GameState.totalAnswers++; // NEU: Jeder Versuch zählt
             checkAnswer(selectedType);
         });
     });
@@ -199,6 +206,9 @@ function startGame() {
     GameState.streak = 0;
     GameState.bestStreak = 0;
     GameState.correctAnswers = 0;
+    GameState.wrongAnswers = 0;     // NEU: Zurücksetzen
+    GameState.skippedAnswers = 0;   // NEU: Zurücksetzen
+    GameState.totalAnswers = 0;     // NEU: Zurücksetzen
     
     updateDisplays();
     updateHearts();
@@ -218,7 +228,7 @@ function startGame() {
 
 // Nächstes Wort holen
 function getNextWord() {
-    if (GameState.correctAnswers >= GameState.totalWords) {
+    if (GameState.correctAnswers >= GameState.neededCorrect) {
         endGame(true);
         return;
     }
@@ -299,6 +309,7 @@ function handleCorrectAnswer() {
 
 // Falsche Antwort
 function handleWrongAnswer(selectedType) {
+    GameState.wrongAnswers++; // NEU: Fehler zählen
     GameState.streak = 0;
     GameState.lives--;
     
@@ -339,6 +350,7 @@ function showHint() {
 function skipWord() {
     if (!GameState.gameActive) return;
     
+    GameState.skippedAnswers++; // NEU: Übersprungene zählen
     GameState.score = Math.max(0, GameState.score - 10);
     GameState.streak = 0;
     
@@ -355,11 +367,20 @@ function skipWord() {
 function updateDisplays() {
     elements.score.textContent = GameState.score;
     elements.streakCounter.textContent = GameState.streak;
-    elements.correctCounter.textContent = `${GameState.correctAnswers}/${GameState.totalWords}`;
+    elements.correctCounter.textContent = `${GameState.correctAnswers}/${GameState.neededCorrect}`;
     
-    const progressPercent = (GameState.correctAnswers / GameState.totalWords) * 100;
+    const progressPercent = (GameState.correctAnswers / GameState.neededCorrect) * 100;
     elements.progressFill.style.width = `${progressPercent}%`;
-    elements.progressText.textContent = `${GameState.correctAnswers}/${GameState.totalWords} Wörter`;
+    elements.progressText.textContent = `${GameState.correctAnswers}/${GameState.neededCorrect} Wörter`;
+    
+    // Debug-Info in Konsole
+    console.log('Statistik:', {
+        richtig: GameState.correctAnswers,
+        falsch: GameState.wrongAnswers,
+        übersprungen: GameState.skippedAnswers,
+        gesamt: GameState.totalAnswers,
+        benötigt: GameState.neededCorrect
+    });
 }
 
 // Herzen aktualisieren
@@ -405,14 +426,68 @@ function endGame(isWin) {
 
 // Endscreen anzeigen
 function showEndScreen(isWin) {
-    const accuracy = GameState.totalWords > 0 ? 
-        Math.round((GameState.correctAnswers / GameState.totalWords) * 100) : 0;
+    // Berechne alle Statistiken
+    const totalAttempted = GameState.totalAnswers;
+    const correct = GameState.correctAnswers;
+    const wrong = GameState.wrongAnswers;
+    const skipped = GameState.skippedAnswers;
+    const needed = GameState.neededCorrect;
     
+    // Genauigkeit berechnen (basierend auf tatsächlichen Versuchen, nicht benötigten)
+    const accuracy = totalAttempted > 0 ? 
+        Math.round((correct / totalAttempted) * 100) : 0;
+    
+    // Statistik anzeigen
     elements.finalScore.textContent = GameState.score;
-    elements.finalCorrect.textContent = `${GameState.correctAnswers}/${GameState.totalWords}`;
+    elements.finalCorrect.textContent = `${correct}/${needed}`;
     elements.finalStreak.textContent = GameState.bestStreak;
     elements.finalLives.textContent = GameState.lives;
     elements.finalAccuracy.textContent = `${accuracy}%`;
+    
+    // NEU: Zusätzliche Statistiken
+    // Wenn diese Elemente noch nicht existieren, erstellen wir sie
+    if (!elements.finalWrong) {
+        // Statistikzeile für Fehler hinzufügen
+        const resultStats = document.querySelector('.result-stats');
+        const wrongItem = document.createElement('div');
+        wrongItem.className = 'result-item';
+        wrongItem.innerHTML = `
+            <span class="result-label">Falsche Antworten:</span>
+            <span class="result-value" id="final-wrong">${wrong}</span>
+        `;
+        resultStats.appendChild(wrongItem);
+        elements.finalWrong = document.getElementById('final-wrong');
+    } else {
+        elements.finalWrong.textContent = wrong;
+    }
+    
+    if (!elements.finalSkipped) {
+        const resultStats = document.querySelector('.result-stats');
+        const skippedItem = document.createElement('div');
+        skippedItem.className = 'result-item';
+        skippedItem.innerHTML = `
+            <span class="result-label">Übersprungen:</span>
+            <span class="result-value" id="final-skipped">${skipped}</span>
+        `;
+        resultStats.appendChild(skippedItem);
+        elements.finalSkipped = document.getElementById('final-skipped');
+    } else {
+        elements.finalSkipped.textContent = skipped;
+    }
+    
+    if (!elements.finalTotal) {
+        const resultStats = document.querySelector('.result-stats');
+        const totalItem = document.createElement('div');
+        totalItem.className = 'result-item';
+        totalItem.innerHTML = `
+            <span class="result-label">Gesamte Versuche:</span>
+            <span class="result-value" id="final-total">${totalAttempted}</span>
+        `;
+        resultStats.appendChild(totalItem);
+        elements.finalTotal = document.getElementById('final-total');
+    } else {
+        elements.finalTotal.textContent = totalAttempted;
+    }
     
     const modalHeader = elements.endModal.querySelector('.modal-header');
     if (isWin) {
@@ -428,6 +503,13 @@ function showEndScreen(isWin) {
     }
     
     elements.endModal.style.display = 'flex';
+    
+    // Log-Ausgabe der vollständigen Statistik
+    logToAPI(`Spiel ${isWin ? 'gewonnen' : 'verloren'}!`);
+    logToAPI(`Richtig: ${correct} von ${needed} benötigt`);
+    logToAPI(`Falsch: ${wrong}, Übersprungen: ${skipped}`);
+    logToAPI(`Gesamtversuche: ${totalAttempted}`);
+    logToAPI(`Effizienz: ${accuracy}%`);
 }
 
 // An LearningView.org senden
@@ -444,21 +526,30 @@ async function sendToLearningView(isWin) {
             localStorage.setItem('wortarten-player-id', playerId);
         }
         
+        // Vollständige Statistik für API
+        const totalAttempted = GameState.totalAnswers;
+        const accuracy = totalAttempted > 0 ? 
+            Math.round((GameState.correctAnswers / totalAttempted) * 100) : 0;
+        
         const gameData = {
             game: 'wortarten-trainer',
             playerId: playerId,
             score: GameState.score,
             correctAnswers: GameState.correctAnswers,
-            totalQuestions: GameState.totalWords,
+            wrongAnswers: GameState.wrongAnswers,
+            skippedAnswers: GameState.skippedAnswers,
+            totalAttempts: totalAttempted,
+            neededCorrect: GameState.neededCorrect,
             bestStreak: GameState.bestStreak,
             livesRemaining: GameState.lives,
             win: isWin,
             timestamp: new Date().toISOString(),
-            accuracy: Math.round((GameState.correctAnswers / GameState.totalWords) * 100)
+            accuracy: accuracy,
+            efficiency: Math.round((GameState.correctAnswers / totalAttempted) * 100)
         };
         
-        logToAPI('📤 Spiele beendet');
-        logToAPI(`Punktzahl: ${gameData.score}`);
+        logToAPI('📤 Spiele beendet - Sende Statistik');
+        logToAPI(`Erfolgsquote: ${gameData.correctAnswers}/${gameData.totalAttempts}`);
         logToAPI(`Genauigkeit: ${gameData.accuracy}%`);
         
         // 2 Sekunden warten (Simulation)
@@ -471,7 +562,7 @@ async function sendToLearningView(isWin) {
         elements.connectedStatus.innerHTML = '<i class="fas fa-check"></i><span>Erfolgreich</span>';
         elements.connectedStatus.classList.add('connected');
         
-        logToAPI('✅ Ergebnisse lokal gespeichert');
+        logToAPI('✅ Statistik lokal gespeichert');
         saveResultsLocally(gameData);
         
     } catch (error) {
@@ -528,13 +619,14 @@ function closeModal() {
 
 // Spiel initialisieren
 function initializeGame() {
-    console.log('Initialisiere Spiel...');
+    console.log('Initialisiere Spiel mit erweiterter Statistik...');
     
     setupEventListeners();
     
     // Initiale Nachricht
     logToAPI('Wortarten Wettkampf geladen');
-    logToAPI('Klicke auf "Spiel starten" um zu beginnen');
+    logToAPI('Spielziel: 30 von 30 Wörtern richtig erkennen');
+    logToAPI('Alle Fehler und Versuche werden gezählt');
     
     console.log('Spiel erfolgreich initialisiert');
     console.log('Wortarten verfügbar:', {
