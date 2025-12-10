@@ -14,7 +14,7 @@
             <div class="logo-section">
                 <div class="logo">
                     <i class="fas fa-brain"></i>
-                    <span>Wortarten</span>
+                    <span>Wortarten Wettkampf</span>
                 </div>
                 <div class="connected-status" id="connected-status">
                     <i class="fas fa-unlink"></i>
@@ -32,7 +32,7 @@
                     <span class="stat-value" id="streak-counter">0</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Richtig</span>
+                    <span class="stat-label">Wörter</span>
                     <span class="stat-value" id="correct-counter">0/30</span>
                 </div>
             </div>
@@ -40,7 +40,10 @@
 
         <!-- Lebenspunkte -->
         <div class="lives-container">
-            <div class="lives-title">Lebenspunkte</div>
+            <div class="lives-title">
+                <i class="fas fa-heart"></i>
+                Lebenspunkte
+            </div>
             <div class="hearts" id="hearts">
                 <i class="fas fa-heart live"></i>
                 <i class="fas fa-heart live"></i>
@@ -116,7 +119,7 @@
                 </button>
                 <button id="skip-btn" class="control-btn skip-btn" disabled>
                     <i class="fas fa-forward"></i>
-                    Überspringen (-1 Punkt)
+                    Überspringen (-10P)
                 </button>
             </div>
         </main>
@@ -133,18 +136,12 @@
         </div>
     </div>
 
-    <!-- Audio-Elemente -->
-    <audio id="correct-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3" preload="auto"></audio>
-    <audio id="wrong-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3" preload="auto"></audio>
-    <audio id="life-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" preload="auto"></audio>
-    <audio id="win-sound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" preload="auto"></audio>
-
     <!-- Endscreen Modal -->
     <div class="modal-overlay" id="end-modal" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
-                <i class="fas fa-trophy"></i>
-                <h2>Spiel beendet!</h2>
+                <i class="fas fa-trophy" id="modal-icon"></i>
+                <h2 id="modal-title">Spiel beendet!</h2>
             </div>
             
             <div class="result-stats">
@@ -164,6 +161,10 @@
                     <span class="result-label">Verbleibende Leben:</span>
                     <span class="result-value" id="final-lives">3</span>
                 </div>
+                <div class="result-item">
+                    <span class="result-label">Genauigkeit:</span>
+                    <span class="result-value" id="final-accuracy">0%</span>
+                </div>
             </div>
 
             <div class="api-status" id="api-status">
@@ -178,9 +179,9 @@
                     <i class="fas fa-redo"></i>
                     Neues Spiel
                 </button>
-                <button id="share-btn" class="modal-btn share-btn" disabled>
-                    <i class="fas fa-share"></i>
-                    Teilen
+                <button id="close-btn" class="modal-btn close-btn">
+                    <i class="fas fa-times"></i>
+                    Schließen
                 </button>
             </div>
         </div>
