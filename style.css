@@ -102,6 +102,13 @@ body {
     font-size: 18px;
     font-weight: 600;
     color: #495057;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lives-title i {
+    color: #e63946;
 }
 
 .hearts {
@@ -155,6 +162,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    transition: all 0.3s ease;
 }
 
 .word-counter {
@@ -375,8 +383,15 @@ body {
 
 .modal-header i {
     font-size: 48px;
-    color: #f59e0b;
     margin-bottom: 15px;
+}
+
+.modal-header.win i {
+    color: #f59e0b;
+}
+
+.modal-header.lose i {
+    color: #e63946;
 }
 
 .modal-header h2 {
@@ -420,9 +435,13 @@ body {
     justify-content: center;
     gap: 15px;
     padding: 15px;
-    background: #e8f5e9;
     border-radius: 10px;
     margin-bottom: 25px;
+}
+
+.api-status.sending {
+    background: #e3f2fd;
+    color: #1565c0;
 }
 
 .api-status.success {
@@ -464,8 +483,8 @@ body {
     color: white;
 }
 
-.share-btn {
-    background: linear-gradient(135deg, #10b981, #059669);
+.close-btn {
+    background: linear-gradient(135deg, #6c757d, #495057);
     color: white;
 }
 
@@ -477,7 +496,7 @@ body {
 /* Responsive Design */
 @media (max-width: 768px) {
     .category-buttons {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 10px;
     }
     
@@ -498,5 +517,25 @@ body {
     .game-stats {
         width: 100%;
         justify-content: space-around;
+    }
+    
+    .lives-container {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .category-buttons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .current-word {
+        font-size: 28px;
+    }
+    
+    .stat-value {
+        font-size: 22px;
     }
 }
