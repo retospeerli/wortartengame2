@@ -1,19 +1,4 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-body {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
-
+/* Container */
 .container {
     background: white;
     border-radius: 20px;
@@ -88,7 +73,7 @@ body {
     font-weight: bold;
 }
 
-/* Lebenspunkte */
+/* Lives Container */
 .lives-container {
     background: #f8f9fa;
     padding: 15px 30px;
@@ -138,7 +123,7 @@ body {
     font-size: 14px;
 }
 
-/* Hauptspielbereich */
+/* Game Area */
 .game-area {
     padding: 30px;
 }
@@ -191,7 +176,7 @@ body {
     text-align: center;
 }
 
-/* Kategorie-Buttons */
+/* Category Buttons */
 .category-buttons {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -228,7 +213,7 @@ body {
     cursor: not-allowed;
 }
 
-/* Button-Farben */
+/* Button Colors */
 .noun-btn {
     background: linear-gradient(135deg, #8B4513, #A0522D);
 }
@@ -250,7 +235,7 @@ body {
     background: linear-gradient(135deg, #ea580c, #f97316);
 }
 
-/* Feedback-Bereich */
+/* Feedback Area */
 .feedback-area {
     background: #f8f9fa;
     border-radius: 12px;
@@ -273,7 +258,7 @@ body {
     font-style: italic;
 }
 
-/* Steuerungs-Buttons */
+/* Control Buttons */
 .control-buttons {
     display: flex;
     justify-content: center;
@@ -318,7 +303,7 @@ body {
     cursor: not-allowed;
 }
 
-/* API-Log */
+/* API Log */
 .api-log {
     background: #1a1a1a;
     color: #00ff88;
@@ -340,6 +325,8 @@ body {
     white-space: pre-wrap;
     line-height: 1.5;
     min-height: 40px;
+    max-height: 200px;
+    overflow-y: auto;
 }
 
 /* Modal */
@@ -350,17 +337,18 @@ body {
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.8);
-    display: flex;
+    display: none;
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    padding: 20px;
 }
 
 .modal-content {
     background: white;
     border-radius: 20px;
     padding: 40px;
-    width: 90%;
+    width: 100%;
     max-width: 500px;
     animation: slideIn 0.5s ease;
 }
@@ -437,6 +425,7 @@ body {
     padding: 15px;
     border-radius: 10px;
     margin-bottom: 25px;
+    text-align: center;
 }
 
 .api-status.sending {
@@ -524,6 +513,10 @@ body {
         gap: 15px;
         text-align: center;
     }
+    
+    .modal-content {
+        padding: 20px;
+    }
 }
 
 @media (max-width: 480px) {
@@ -537,5 +530,13 @@ body {
     
     .stat-value {
         font-size: 22px;
+    }
+    
+    .modal-buttons {
+        flex-direction: column;
+    }
+    
+    .modal-btn {
+        width: 100%;
     }
 }
