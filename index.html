@@ -76,7 +76,7 @@
                         <span class="stat-value" id="streak-counter">0</span>
                     </div>
                     <div class="stat-item">
-                        <span class="stat-label">Wörter</span>
+                        <span class="stat-label">Richtig</span>
                         <span class="stat-value" id="correct-counter">0/30</span>
                     </div>
                 </div>
@@ -195,7 +195,7 @@
                     <span class="result-value" id="final-score">0</span>
                 </div>
                 <div class="result-item">
-                    <span class="result-label">Richtige Antworten:</span>
+                    <span class="result-label">Richtig (benötigt):</span>
                     <span class="result-value" id="final-correct">0/30</span>
                 </div>
                 <div class="result-item">
@@ -210,6 +210,7 @@
                     <span class="result-label">Genauigkeit:</span>
                     <span class="result-value" id="final-accuracy">0%</span>
                 </div>
+                <!-- Diese Felder werden durch das Skript dynamisch hinzugefügt -->
             </div>
 
             <div class="api-status" id="api-status">
@@ -280,7 +281,7 @@
             const script = document.createElement('script');
             script.src = 'script.js';
             script.onload = function() {
-                console.log('Hauptskript geladen');
+                console.log('Hauptskript mit Statistik geladen');
             };
             script.onerror = function() {
                 console.error('Fehler beim Laden des Skripts');
