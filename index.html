@@ -3,141 +3,186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wortarten Wettkampf - LearningView.org</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Wortarten Wettkampf</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Inline-CSS für schnelleres Laden */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 24px;
+        }
+        
+        .loading i {
+            display: block;
+            font-size: 48px;
+            margin-bottom: 20px;
+            animation: spin 2s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Kopfbereich -->
-        <header class="header">
-            <div class="logo-section">
-                <div class="logo">
-                    <i class="fas fa-brain"></i>
-                    <span>Wortarten Wettkampf</span>
-                </div>
-                <div class="connected-status" id="connected-status">
-                    <i class="fas fa-unlink"></i>
-                    <span>Offline</span>
-                </div>
-            </div>
-            
-            <div class="game-stats">
-                <div class="stat-item">
-                    <span class="stat-label">Punkte</span>
-                    <span class="stat-value" id="score">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Serie</span>
-                    <span class="stat-value" id="streak-counter">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Wörter</span>
-                    <span class="stat-value" id="correct-counter">0/30</span>
-                </div>
-            </div>
-        </header>
-
-        <!-- Lebenspunkte -->
-        <div class="lives-container">
-            <div class="lives-title">
-                <i class="fas fa-heart"></i>
-                Lebenspunkte
-            </div>
-            <div class="hearts" id="hearts">
-                <i class="fas fa-heart live"></i>
-                <i class="fas fa-heart live"></i>
-                <i class="fas fa-heart live"></i>
-            </div>
-            <div class="streak-bonus" id="streak-bonus">
-                <i class="fas fa-bolt"></i>
-                <span>+1 Leben bei 5er Serie</span>
-            </div>
-        </div>
-
-        <!-- Hauptspielbereich -->
-        <main class="game-area">
-            <div class="word-display-container">
-                <div class="current-word" id="current-word">
-                    <span id="word-text">Bereit?</span>
-                </div>
-                <div class="word-counter">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progress-fill"></div>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading">
+        <i class="fas fa-spinner"></i>
+        <p>Lade Wortarten Wettkampf...</p>
+    </div>
+    
+    <!-- Main Game Container (wird später angezeigt) -->
+    <div id="game-container" style="display: none;">
+        <div class="container">
+            <!-- Header -->
+            <header class="header">
+                <div class="logo-section">
+                    <div class="logo">
+                        <i class="fas fa-brain"></i>
+                        <span>Wortarten Wettkampf</span>
                     </div>
-                    <div class="progress-text">
-                        <span id="progress-text">0/30 Wörter</span>
+                    <div class="connected-status" id="connected-status">
+                        <i class="fas fa-unlink"></i>
+                        <span>Offline</span>
                     </div>
                 </div>
-            </div>
-
-            <!-- Kategorie-Buttons -->
-            <div class="category-buttons">
-                <button class="category-btn noun-btn" data-type="noun" data-color="brown">
-                    <i class="fas fa-mountain"></i>
-                    <span>Nomen</span>
-                </button>
                 
-                <button class="category-btn verb-btn" data-type="verb" data-color="blue">
-                    <i class="fas fa-running"></i>
-                    <span>Verben</span>
-                </button>
-                
-                <button class="category-btn adj-btn" data-type="adjective" data-color="yellow">
-                    <i class="fas fa-star"></i>
-                    <span>Adjektiv</span>
-                </button>
-                
-                <button class="category-btn particle-btn" data-type="particle" data-color="green">
-                    <i class="fas fa-dot-circle"></i>
-                    <span>Partikel</span>
-                </button>
-                
-                <button class="category-btn pronoun-btn" data-type="pronoun" data-color="orange">
-                    <i class="fas fa-user"></i>
-                    <span>Pronomen</span>
-                </button>
-            </div>
-
-            <!-- Feedback-Bereich -->
-            <div class="feedback-area">
-                <div class="feedback-message" id="feedback-message">
-                    Wähle die richtige Wortart für das angezeigte Wort!
+                <div class="game-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Punkte</span>
+                        <span class="stat-value" id="score">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Serie</span>
+                        <span class="stat-value" id="streak-counter">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Wörter</span>
+                        <span class="stat-value" id="correct-counter">0/30</span>
+                    </div>
                 </div>
-                <div class="feedback-details" id="feedback-details"></div>
+            </header>
+
+            <!-- Lives -->
+            <div class="lives-container">
+                <div class="lives-title">
+                    <i class="fas fa-heart"></i>
+                    Lebenspunkte
+                </div>
+                <div class="hearts" id="hearts">
+                    <i class="fas fa-heart live"></i>
+                    <i class="fas fa-heart live"></i>
+                    <i class="fas fa-heart live"></i>
+                </div>
+                <div class="streak-bonus" id="streak-bonus">
+                    <i class="fas fa-bolt"></i>
+                    <span>+1 Leben bei 5er Serie</span>
+                </div>
             </div>
 
-            <!-- Steuerungs-Buttons -->
-            <div class="control-buttons">
-                <button id="start-btn" class="control-btn start-btn">
-                    <i class="fas fa-play"></i>
-                    Spiel starten
-                </button>
-                <button id="hint-btn" class="control-btn hint-btn" disabled>
-                    <i class="fas fa-lightbulb"></i>
-                    Tipp (3s)
-                </button>
-                <button id="skip-btn" class="control-btn skip-btn" disabled>
-                    <i class="fas fa-forward"></i>
-                    Überspringen (-10P)
-                </button>
-            </div>
-        </main>
+            <!-- Main Game Area -->
+            <main class="game-area">
+                <div class="word-display-container">
+                    <div class="current-word" id="current-word">
+                        <span id="word-text">Bereit?</span>
+                    </div>
+                    <div class="word-counter">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        <div class="progress-text">
+                            <span id="progress-text">0/30 Wörter</span>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- API-Log -->
-        <div class="api-log" id="api-log">
-            <div class="api-log-header">
-                <i class="fas fa-server"></i>
-                <span>LearningView.org Verbindung</span>
-            </div>
-            <div class="api-log-content" id="api-log-content">
-                Warte auf Spielende...
+                <!-- Category Buttons -->
+                <div class="category-buttons">
+                    <button class="category-btn noun-btn" data-type="noun">
+                        <i class="fas fa-mountain"></i>
+                        <span>Nomen</span>
+                    </button>
+                    
+                    <button class="category-btn verb-btn" data-type="verb">
+                        <i class="fas fa-running"></i>
+                        <span>Verben</span>
+                    </button>
+                    
+                    <button class="category-btn adj-btn" data-type="adjective">
+                        <i class="fas fa-star"></i>
+                        <span>Adjektiv</span>
+                    </button>
+                    
+                    <button class="category-btn particle-btn" data-type="particle">
+                        <i class="fas fa-dot-circle"></i>
+                        <span>Partikel</span>
+                    </button>
+                    
+                    <button class="category-btn pronoun-btn" data-type="pronoun">
+                        <i class="fas fa-user"></i>
+                        <span>Pronomen</span>
+                    </button>
+                </div>
+
+                <!-- Feedback Area -->
+                <div class="feedback-area">
+                    <div class="feedback-message" id="feedback-message">
+                        Klicke auf "Spiel starten" um zu beginnen!
+                    </div>
+                    <div class="feedback-details" id="feedback-details"></div>
+                </div>
+
+                <!-- Control Buttons -->
+                <div class="control-buttons">
+                    <button id="start-btn" class="control-btn start-btn">
+                        <i class="fas fa-play"></i>
+                        Spiel starten
+                    </button>
+                    <button id="hint-btn" class="control-btn hint-btn" disabled>
+                        <i class="fas fa-lightbulb"></i>
+                        Tipp (-5P)
+                    </button>
+                    <button id="skip-btn" class="control-btn skip-btn" disabled>
+                        <i class="fas fa-forward"></i>
+                        Überspringen (-10P)
+                    </button>
+                </div>
+            </main>
+
+            <!-- API Log -->
+            <div class="api-log" id="api-log">
+                <div class="api-log-header">
+                    <i class="fas fa-server"></i>
+                    <span>Spiel-Log</span>
+                </div>
+                <div class="api-log-content" id="api-log-content">
+                    Willkommen beim Wortarten Wettkampf!
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Endscreen Modal -->
-    <div class="modal-overlay" id="end-modal" style="display: none;">
+    <!-- End Game Modal -->
+    <div class="modal-overlay" id="end-modal">
         <div class="modal-content">
             <div class="modal-header">
                 <i class="fas fa-trophy" id="modal-icon"></i>
@@ -146,11 +191,11 @@
             
             <div class="result-stats">
                 <div class="result-item">
-                    <span class="result-label">Endpunktzahl:</span>
+                    <span class="result-label">Punktzahl:</span>
                     <span class="result-value" id="final-score">0</span>
                 </div>
                 <div class="result-item">
-                    <span class="result-label">Richtig:</span>
+                    <span class="result-label">Richtige Antworten:</span>
                     <span class="result-value" id="final-correct">0/30</span>
                 </div>
                 <div class="result-item">
@@ -168,10 +213,10 @@
             </div>
 
             <div class="api-status" id="api-status">
-                <div class="spinner" id="api-spinner">
+                <div class="spinner" id="api-spinner" style="display: none;">
                     <i class="fas fa-spinner fa-spin"></i>
                 </div>
-                <span id="api-status-text">Sende Ergebnisse an LearningView.org...</span>
+                <span id="api-status-text">Ergebnisse werden verarbeitet...</span>
             </div>
 
             <div class="modal-buttons">
@@ -187,6 +232,67 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- Audio Elements -->
+    <audio id="correct-sound" preload="none">
+        <source src="audio/correct.wav" type="audio/wav">
+        <source src="audio/correct.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="error-sound" preload="none">
+        <source src="audio/error.wav" type="audio/wav">
+        <source src="audio/error.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="roundwon-sound" preload="none">
+        <source src="audio/roundwon.wav" type="audio/wav">
+        <source src="audio/roundwon.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="roundlost-sound" preload="none">
+        <source src="audio/roundlost.wav" type="audio/wav">
+        <source src="audio/roundlost.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="gamewon-sound" preload="none">
+        <source src="audio/gamewon.wav" type="audio/wav">
+        <source src="audio/gamewon.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="gamelost-sound" preload="none">
+        <source src="audio/gamelost.wav" type="audio/wav">
+        <source src="audio/gamelost.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Fallback Audio (wenn eigene Dateien fehlen) -->
+    <audio id="fallback-correct" preload="none" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="fallback-error" preload="none" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+    <audio id="fallback-win" preload="none" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
+
+    <!-- Game Script -->
+    <script>
+        // Minimaler Initialisierungs-Code
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM geladen, starte Spiel...');
+            
+            // Verstecke Loading Screen nach kurzer Zeit
+            setTimeout(function() {
+                document.getElementById('loading-screen').style.display = 'none';
+                document.getElementById('game-container').style.display = 'block';
+                console.log('Spielcontainer angezeigt');
+            }, 500);
+            
+            // Lade das Hauptskript
+            const script = document.createElement('script');
+            script.src = 'script.js';
+            script.onload = function() {
+                console.log('Hauptskript geladen');
+            };
+            script.onerror = function() {
+                console.error('Fehler beim Laden des Skripts');
+                document.getElementById('feedback-message').textContent = 'Fehler: Skript konnte nicht geladen werden.';
+            };
+            document.head.appendChild(script);
+        });
+        
+        // Fehlerbehandlung für fehlende Dateien
+        window.addEventListener('error', function(e) {
+            console.warn('Fehler aufgetreten:', e.message);
+        });
+    </script>
 </body>
 </html>
