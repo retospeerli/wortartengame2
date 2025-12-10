@@ -62,36 +62,139 @@ class WordGame {
     }
     
     setupAudio() {
+        // Audio-Elemente mit Fallback
         this.audio = {
-            correct: new Audio('audio/correct.wav'),
-            error: new Audio('audio/error.wav'),
-            roundlost: new Audio('audio/roundlost.wav'),
-            roundwon: new Audio('audio/roundwon.wav'),
-            gamelost: new Audio('audio/gamelost.wav'),
-            gamewon: new Audio('audio/gamewon.wav')
+            correct: document.getElementById('correct-sound'),
+            error: document.getElementById('error-sound'),
+            roundlost: document.getElementById('roundlost-sound'),
+            roundwon: document.getElementById('roundwon-sound'),
+            gamelost: document.getElementById('gamelost-sound'),
+            gamewon: document.getElementById('gamewon-sound')
+        };
+        
+        // Fallback-Audio für den Fall, dass lokale Dateien fehlen
+        this.fallbackAudio = {
+            correct: document.getElementById('fallback-correct'),
+            error: document.getElementById('fallback-error'),
+            win: document.getElementById('fallback-win')
         };
         
         // Audio-Einstellungen
         Object.values(this.audio).forEach(audio => {
-            audio.volume = 0.7;
-            audio.preload = 'auto';
+            if (audio) {
+                audio.volume = 0.5;
+                audio.preload = 'auto';
+            }
+        });
+        
+        Object.values(this.fallbackAudio).forEach(audio => {
+            if (audio) {
+                audio.volume = 0.5;
+                audio.preload = 'auto';
+            }
         });
     }
     
     async loadWordLists() {
         try {
-            // Für GitHub: Hier könnten die Wortlisten geladen werden
-            // Beispiel-Daten (werden später ersetzt durch TXT-Dateien)
-            this.words.noun = ["haus", "baum", "mutter", "vater", "kind", "schule", "buch", "stift", "tisch", "fenster", "tür", "bett", "auto", "fahrrad", "ball", "blume", "sonne", "mond", "stern", "wolke", "regen", "schnee", "hund", "katze", "maus", "fisch", "vogel", "pferd", "kuh", "schaf", "brot", "milch", "wasser", "apfel", "banane", "orange", "keks", "kuchen", "teller", "glas", "messer", "gabel", "löffel", "jacke", "hose", "hut", "schuh", "socke", "hand", "fuß", "kopf", "auge", "ohr", "nase", "mund", "haar", "zahn", "garten", "park", "straße", "brücke", "fluss", "see", "berg", "tal", "wald", "wiese", "uhr", "tag", "nacht", "morgen", "abend", "jahr", "monat", "woche", "freund", "lehrer", "arzt", "polizist", "feuer", "licht", "farbe", "bild", "lied", "spiel", "zahl", "buchstabe", "name", "adresse", "telefon", "brief", "paket", "geschenk", "feiertag", "geburtstag", "weihnachten", "sommer", "winter", "frühling", "herbst"];
-            this.words.adjective = ["groß", "klein", "schnell", "langsam", "hell", "dunkel", "fröhlich", "traurig", "bunt", "rund", "eckig", "schwer", "leicht", "hart", "weich", "warm", "kalt", "heiß", "kühl", "neu", "alt", "jung", "altmodisch", "modern", "sauber", "schmutzig", "ordentlich", "unordentlich", "laut", "leise", "stark", "schwach", "hoch", "niedrig", "lang", "kurz", "breit", "schmal", "dick", "dünn", "voll", "leer", "reich", "arm", "teuer", "billig", "gut", "schlecht", "richtig", "falsch", "einfach", "schwierig", "sicher", "gefährlich", "gesund", "krank", "müde", "wach", "hungrig", "satt", "durstig", "nass", "trocken", "glatt", "rau", "süß", "sauer", "salzig", "bitter", "scharf", "frisch", "faul", "lebendig", "tot", "lauter", "still", "aufgeregt", "ruhig", "neugierig", "gleichgültig", "geduldig", "ungeduldig", "freundlich", "unfreundlich", "höflich", "unhöflich", "fleißig", "faul", "klug", "dumm", "mutig", "ängstlich", "zufrieden", "unzufrieden", "glücklich", "unglücklich", "aufgeregt", "gelassen"];
-            this.words.verb = ["gehen", "spielen", "lesen", "schreiben", "malen", "lachen", "springen", "sehen", "hören", "sagen", "fragen", "antworten", "kommen", "gehen", "laufen", "rennen", "stehen", "sitzen", "liegen", "schlafen", "träumen", "essen", "trinken", "kochen", "backen", "waschen", "putzen", "räumen", "bauen", "basteln", "zeichnen", "rechnen", "zählen", "singen", "tanzen", "musizieren", "pfeifen", "klatschen", "winken", "zeigen", "geben", "nehmen", "halten", "tragen", "bringen", "holen", "kaufen", "verkaufen", "bezahlen", "öffnen", "schließen", "drücken", "ziehen", "schieben", "heben", "senken", "drehen", "biegen", "brechen", "reparieren", "arbeiten", "lernen", "lehren", "helfen", "stören", "warten", "suchen", "finden", "verlieren", "gewinnen", "verlieren", "gewinnen", "verstecken", "entdecken", "denken", "glauben", "wissen", "kennen", "verstehen", "erklären", "erzählen", "versprechen", "vergessen", "erinnern", "hoffen", "fürchten", "lieben", "mögen", "hassen", "dürfen", "können", "mögen", "müssen", "sollen", "wollen", "werden", "sein", "haben"];
-            this.words.pronoun = ["ich", "du", "er", "sie", "es", "wir", "ihr", "sie", "mein", "dein", "sein", "ihr", "sein", "unser", "euer", "ihr", "mich", "dich", "sich", "ihn", "sie", "es", "uns", "euch", "sich", "jemand", "niemand", "etwas", "nichts", "alles", "jeder", "jede", "jedes", "mancher", "manche", "manches", "welcher", "welche", "welches", "dieser", "diese", "dieses", "jener", "jene", "jenes", "derselbe", "dieselbe", "dasselbe", "solcher", "solche", "solches", "welcher", "welche", "welches", "irgendwer", "irgendetwas", "einiger", "einige", "einiges", "anderer", "andere", "anderes"];
-            this.words.particle = ["nicht", "auch", "noch", "schon", "immer", "oft", "vielleicht", "gerade", "besonders", "doch", "denn", "ja", "nein", "vielleicht", "ziemlich", "recht", "ganz", "etwas", "etwa", "fast", "beinahe", "eben", "genau", "gerade", "wirklich", "eigentlich", "sogar", "selbst", "besonders", "einfach", "bloß", "nur", "erst", "schon", "noch", "immerhin", "jedenfalls", "sowieso", "trotzdem", "deshalb", "daher", "darum", "also", "folglich", "dennoch", "allerdings", "jedoch", "aber", "oder", "und", "denn", "sondern", "beziehungsweise", "entweder", "weder", "ob", "dass", "damit", "obwohl", "wenn", "als", "wie", "weil", "da", "falls", "sobald", "bis", "seit", "während", "bevor", "nachdem", "indem", "ohne", "mit", "bei", "von", "zu", "aus", "durch", "für", "gegen", "um", "an", "auf", "hinter", "neben", "in", "über", "unter", "vor", "zwischen", "links", "rechts", "oben", "unten", "vorne", "hinten", "innen", "außen", "heute", "gestern", "morgen", "jetzt", "gleich", "später", "früher"];
+            // Feste Wortlisten (bereits in Kleinbuchstaben)
+            this.words.noun = [
+                "haus", "baum", "mutter", "vater", "kind", "schule", "buch", "stift", 
+                "tisch", "fenster", "tür", "bett", "auto", "fahrrad", "ball", "blume", 
+                "sonne", "mond", "stern", "wolke", "regen", "schnee", "hund", "katze", 
+                "maus", "fisch", "vogel", "pferd", "kuh", "schaf", "brot", "milch", 
+                "wasser", "apfel", "banane", "orange", "keks", "kuchen", "teller", 
+                "glas", "messer", "gabel", "löffel", "jacke", "hose", "hut", "schuh", 
+                "socke", "hand", "fuß", "kopf", "auge", "ohr", "nase", "mund", "haar", 
+                "zahn", "garten", "park", "straße", "brücke", "fluss", "see", "berg", 
+                "tal", "wald", "wiese", "uhr", "tag", "nacht", "morgen", "abend", 
+                "jahr", "monat", "woche", "freund", "lehrer", "arzt", "polizist", 
+                "feuer", "licht", "farbe", "bild", "lied", "spiel", "zahl", "buchstabe", 
+                "name", "adresse", "telefon", "brief", "paket", "geschenk", "feiertag", 
+                "geburtstag", "weihnachten", "sommer", "winter", "frühling", "herbst"
+            ];
+            
+            this.words.adjective = [
+                "groß", "klein", "schnell", "langsam", "hell", "dunkel", "fröhlich", 
+                "traurig", "bunt", "rund", "eckig", "schwer", "leicht", "hart", "weich", 
+                "warm", "kalt", "heiß", "kühl", "neu", "alt", "jung", "altmodisch", 
+                "modern", "sauber", "schmutzig", "ordentlich", "unordentlich", "laut", 
+                "leise", "stark", "schwach", "hoch", "niedrig", "lang", "kurz", "breit", 
+                "schmal", "dick", "dünn", "voll", "leer", "reich", "arm", "teuer", 
+                "billig", "gut", "schlecht", "richtig", "falsch", "einfach", "schwierig", 
+                "sicher", "gefährlich", "gesund", "krank", "müde", "wach", "hungrig", 
+                "satt", "durstig", "nass", "trocken", "glatt", "rau", "süß", "sauer", 
+                "salzig", "bitter", "scharf", "frisch", "faul", "lebendig", "tot", 
+                "lauter", "still", "aufgeregt", "ruhig", "neugierig", "gleichgültig", 
+                "geduldig", "ungeduldig", "freundlich", "unfreundlich", "höflich", 
+                "unhöflich", "fleißig", "faul", "klug", "dumm", "mutig", "ängstlich", 
+                "zufrieden", "unzufrieden", "glücklich", "unglücklich", "gelassen"
+            ];
+            
+            this.words.verb = [
+                "gehen", "spielen", "lesen", "schreiben", "malen", "lachen", "springen", 
+                "sehen", "hören", "sagen", "fragen", "antworten", "kommen", "laufen", 
+                "rennen", "stehen", "sitzen", "liegen", "schlafen", "träumen", "essen", 
+                "trinken", "kochen", "backen", "waschen", "putzen", "räumen", "bauen", 
+                "basteln", "zeichnen", "rechnen", "zählen", "singen", "tanzen", 
+                "musizieren", "pfeifen", "klatschen", "winken", "zeigen", "geben", 
+                "nehmen", "halten", "tragen", "bringen", "holen", "kaufen", "verkaufen", 
+                "bezahlen", "öffnen", "schließen", "drücken", "ziehen", "schieben", 
+                "heben", "senken", "drehen", "biegen", "brechen", "reparieren", 
+                "arbeiten", "lernen", "lehren", "helfen", "stören", "warten", "suchen", 
+                "finden", "verlieren", "gewinnen", "verstecken", "entdecken", "denken", 
+                "glauben", "wissen", "kennen", "verstehen", "erklären", "erzählen", 
+                "versprechen", "vergessen", "erinnern", "hoffen", "fürchten", "lieben", 
+                "mögen", "hassen", "dürfen", "können", "müssen", "sollen", "wollen", 
+                "werden", "sein", "haben"
+            ];
+            
+            this.words.pronoun = [
+                "ich", "du", "er", "sie", "es", "wir", "ihr", "mein", "dein", "sein", 
+                "ihr", "unser", "euer", "mich", "dich", "sich", "ihn", "uns", "euch", 
+                "jemand", "niemand", "etwas", "nichts", "alles", "jeder", "jede", 
+                "jedes", "mancher", "manche", "manches", "welcher", "welche", "welches", 
+                "dieser", "diese", "dieses", "jener", "jene", "jenes", "derselbe", 
+                "dieselbe", "dasselbe", "solcher", "solche", "solches", "irgendwer", 
+                "irgendetwas", "einiger", "einige", "einiges", "anderer", "andere", 
+                "anderes"
+            ];
+            
+            this.words.particle = [
+                "nicht", "auch", "noch", "schon", "immer", "oft", "vielleicht", 
+                "gerade", "besonders", "doch", "denn", "ja", "nein", "ziemlich", 
+                "recht", "ganz", "etwas", "etwa", "fast", "beinahe", "eben", "genau", 
+                "wirklich", "eigentlich", "sogar", "selbst", "einfach", "bloß", "nur", 
+                "erst", "immerhin", "jedenfalls", "sowieso", "trotzdem", "deshalb", 
+                "daher", "darum", "also", "folglich", "dennoch", "allerdings", "jedoch", 
+                "aber", "oder", "und", "sondern", "beziehungsweise", "entweder", 
+                "weder", "ob", "dass", "damit", "obwohl", "wenn", "als", "wie", 
+                "weil", "da", "falls", "sobald", "bis", "seit", "während", "bevor", 
+                "nachdem", "indem", "ohne", "mit", "bei", "von", "zu", "aus", "durch", 
+                "für", "gegen", "um", "an", "auf", "hinter", "neben", "in", "über", 
+                "unter", "vor", "zwischen", "links", "rechts", "oben", "unten", 
+                "vorne", "hinten", "innen", "außen", "heute", "gestern", "morgen", 
+                "jetzt", "gleich", "später", "früher"
+            ];
             
             this.logToAPI('Wortlisten erfolgreich geladen');
+            console.log('Wortlisten geladen:', {
+                nomen: this.words.noun.length,
+                adjektive: this.words.adjective.length,
+                verben: this.words.verb.length,
+                pronomen: this.words.pronoun.length,
+                partikeln: this.words.particle.length
+            });
+            
         } catch (error) {
             console.error('Fehler beim Laden der Wortlisten:', error);
             this.logToAPI('Fehler beim Laden der Wortlisten');
+            // Fallback-Wörter
+            this.words.noun = ["haus", "baum", "kind"];
+            this.words.adjective = ["groß", "klein", "schnell"];
+            this.words.verb = ["gehen", "spielen", "lesen"];
+            this.words.pronoun = ["ich", "du", "er"];
+            this.words.particle = ["nicht", "auch", "noch"];
         }
     }
     
@@ -101,39 +204,23 @@ class WordGame {
             btn.addEventListener('click', (e) => {
                 if (!this.gameActive) return;
                 const selectedType = e.currentTarget.dataset.type;
+                console.log('Ausgewählt:', selectedType, 'für Wort:', this.currentWord);
                 this.checkAnswer(selectedType);
             });
         });
         
         // Steuerungs-Buttons
-        this.buttons.start.addEventListener('click', () => this.startGame());
+        this.buttons.start.addEventListener('click', () => {
+            console.log('Spiel starten geklickt');
+            this.startGame();
+        });
         this.buttons.hint.addEventListener('click', () => this.showHint());
         this.buttons.skip.addEventListener('click', () => this.skipWord());
         this.buttons.restart.addEventListener('click', () => this.restartGame());
         this.buttons.close.addEventListener('click', () => this.closeModal());
         
-        // Tastatur-Steuerung (optional)
-        document.addEventListener('keydown', (e) => {
-            if (!this.gameActive) return;
-            
-            // Zahlen 1-5 für Kategorie-Buttons
-            if (e.key >= '1' && e.key <= '5') {
-                const index = parseInt(e.key) - 1;
-                if (this.categoryBtns[index]) {
-                    this.categoryBtns[index].click();
-                }
-            }
-            
-            // Leertaste für Tipp
-            if (e.key === ' ' && !this.buttons.hint.disabled) {
-                this.showHint();
-            }
-            
-            // Enter für nächste Frage
-            if (e.key === 'Enter' && !this.gameActive) {
-                this.getNextWord();
-            }
-        });
+        // Debug: Log beim Laden
+        console.log('Event-Listener eingerichtet');
     }
     
     generatePlayerId() {
@@ -146,6 +233,7 @@ class WordGame {
     }
     
     startGame() {
+        console.log('StartGame aufgerufen');
         this.gameActive = true;
         this.score = 0;
         this.lives = 3;
@@ -166,6 +254,7 @@ class WordGame {
         
         this.getNextWord();
         this.logToAPI('Spiel gestartet');
+        console.log('Spiel gestartet, GameActive:', this.gameActive);
     }
     
     getRandomWord() {
@@ -173,21 +262,43 @@ class WordGame {
         const randomType = types[Math.floor(Math.random() * types.length)];
         const wordList = this.words[randomType];
         
+        console.log('Verfügbare Wortlisten:', {
+            noun: this.words.noun?.length || 0,
+            adjective: this.words.adjective?.length || 0,
+            verb: this.words.verb?.length || 0,
+            pronoun: this.words.pronoun?.length || 0,
+            particle: this.words.particle?.length || 0
+        });
+        
         if (!wordList || wordList.length === 0) {
+            console.error('Wortliste für', randomType, 'ist leer!');
             return { word: 'fehler', type: randomType };
         }
         
-        const randomWord = wordList[Math.floor(Math.random() * wordList.length)];
+        const randomIndex = Math.floor(Math.random() * wordList.length);
+        const randomWord = wordList[randomIndex];
+        
+        console.log('Zufälliges Wort:', {
+            word: randomWord,
+            type: randomType,
+            index: randomIndex,
+            listLength: wordList.length
+        });
+        
         return { word: randomWord.toLowerCase(), type: randomType };
     }
     
     getNextWord() {
+        console.log('getNextWord aufgerufen, correctAnswers:', this.correctAnswers, 'totalWords:', this.totalWords);
+        
         if (this.correctAnswers >= this.totalWords) {
+            console.log('Spiel gewonnen - alle Wörter geschafft');
             this.endGame(true);
             return;
         }
         
         if (this.lives <= 0) {
+            console.log('Spiel verloren - keine Leben mehr');
             this.endGame(false);
             return;
         }
@@ -195,6 +306,8 @@ class WordGame {
         const { word, type } = this.getRandomWord();
         this.currentWord = word;
         this.currentType = type;
+        
+        console.log('Neues Wort:', word, 'Typ:', type);
         
         // Wort in Kleinbuchstaben anzeigen
         this.wordDisplay.textContent = word.toLowerCase();
@@ -207,9 +320,20 @@ class WordGame {
     }
     
     checkAnswer(selectedType) {
-        if (!this.gameActive) return;
+        console.log('checkAnswer:', {
+            selectedType: selectedType,
+            currentType: this.currentType,
+            currentWord: this.currentWord,
+            gameActive: this.gameActive
+        });
+        
+        if (!this.gameActive) {
+            console.log('Spiel nicht aktiv!');
+            return;
+        }
         
         const isCorrect = selectedType === this.currentType;
+        console.log('Ist korrekt?', isCorrect);
         
         if (isCorrect) {
             this.handleCorrectAnswer();
@@ -220,7 +344,34 @@ class WordGame {
         this.updateDisplays();
     }
     
+    async playSound(audioName, useFallback = false) {
+        try {
+            let audio;
+            if (useFallback) {
+                audio = this.fallbackAudio[audioName];
+            } else {
+                audio = this.audio[audioName];
+            }
+            
+            if (audio) {
+                audio.currentTime = 0;
+                await audio.play();
+            }
+        } catch (error) {
+            console.log('Audio-Fehler:', error);
+            // Fallback für bestimmte Sounds
+            if (audioName === 'correct' && this.fallbackAudio.correct) {
+                this.fallbackAudio.correct.currentTime = 0;
+                this.fallbackAudio.correct.play().catch(e => console.log('Fallback audio error:', e));
+            } else if (audioName === 'error' && this.fallbackAudio.error) {
+                this.fallbackAudio.error.currentTime = 0;
+                this.fallbackAudio.error.play().catch(e => console.log('Fallback audio error:', e));
+            }
+        }
+    }
+    
     handleCorrectAnswer() {
+        console.log('Richtige Antwort!');
         this.score += 10;
         this.streak++;
         if (this.streak > this.bestStreak) {
@@ -228,9 +379,11 @@ class WordGame {
         }
         this.correctAnswers++;
         
-        // Audio-Feedback
-        this.audio.correct.currentTime = 0;
-        this.audio.correct.play().catch(e => console.log('Audio error:', e));
+        // Audio-Feedback mit Fallback
+        this.playSound('correct').catch(() => {
+            console.log('Lokales Audio fehlt, verwende Fallback');
+            this.playSound('correct', true);
+        });
         
         // Visuelles Feedback
         this.feedbackMessage.innerHTML = `<span style="color: #10b981; font-weight: bold;">✓ Richtig!</span>`;
@@ -240,8 +393,10 @@ class WordGame {
         if (this.streak % 5 === 0 && this.lives < 5) {
             this.lives++;
             this.updateHearts();
-            this.audio.roundwon.currentTime = 0;
-            this.audio.roundwon.play().catch(e => console.log('Audio error:', e));
+            
+            this.playSound('roundwon').catch(() => {
+                console.log('Roundwon Audio fehlt');
+            });
             
             // Animation
             this.heartsContainer.style.transform = 'scale(1.2)';
@@ -259,12 +414,15 @@ class WordGame {
     }
     
     handleWrongAnswer(selectedType) {
+        console.log('Falsche Antwort!');
         this.streak = 0;
         this.lives--;
         
-        // Audio-Feedback
-        this.audio.error.currentTime = 0;
-        this.audio.error.play().catch(e => console.log('Audio error:', e));
+        // Audio-Feedback mit Fallback
+        this.playSound('error').catch(() => {
+            console.log('Lokales Audio fehlt, verwende Fallback');
+            this.playSound('error', true);
+        });
         
         // Visuelles Feedback
         this.feedbackMessage.innerHTML = `<span style="color: #e63946; font-weight: bold;">✗ Falsch!</span>`;
@@ -312,8 +470,9 @@ class WordGame {
         
         this.updateDisplays();
         
-        this.audio.roundlost.currentTime = 0;
-        this.audio.roundlost.play().catch(e => console.log('Audio error:', e));
+        this.playSound('roundlost').catch(() => {
+            console.log('Roundlost Audio fehlt');
+        });
         
         this.getNextWord();
     }
@@ -326,6 +485,13 @@ class WordGame {
         const progressPercent = (this.correctAnswers / this.totalWords) * 100;
         this.progressFill.style.width = `${progressPercent}%`;
         this.progressText.textContent = `${this.correctAnswers}/${this.totalWords} Wörter`;
+        
+        console.log('Displays aktualisiert:', {
+            score: this.score,
+            streak: this.streak,
+            correct: this.correctAnswers,
+            progress: progressPercent
+        });
     }
     
     updateHearts() {
@@ -337,6 +503,7 @@ class WordGame {
                 heart.className = 'fas fa-heart lost';
             }
         });
+        console.log('Herzen aktualisiert:', this.lives);
     }
     
     getTypeName(type) {
@@ -351,6 +518,7 @@ class WordGame {
     }
     
     async endGame(isWin) {
+        console.log('EndGame aufgerufen, isWin:', isWin);
         this.gameActive = false;
         this.buttons.hint.disabled = true;
         this.buttons.skip.disabled = true;
@@ -358,11 +526,14 @@ class WordGame {
         
         // Audio-Feedback
         if (isWin) {
-            this.audio.gamewon.currentTime = 0;
-            this.audio.gamewon.play().catch(e => console.log('Audio error:', e));
+            this.playSound('gamewon').catch(() => {
+                console.log('Gamewon Audio fehlt, verwende Fallback');
+                this.playSound('win', true);
+            });
         } else {
-            this.audio.gamelost.currentTime = 0;
-            this.audio.gamelost.play().catch(e => console.log('Audio error:', e));
+            this.playSound('gamelost').catch(() => {
+                console.log('Gamelost Audio fehlt');
+            });
         }
         
         // Endscreen anzeigen
@@ -396,6 +567,7 @@ class WordGame {
         }
         
         this.endModal.style.display = 'flex';
+        console.log('Endscreen angezeigt, isWin:', isWin);
     }
     
     async sendToLearningView(isWin) {
@@ -422,16 +594,6 @@ class WordGame {
             this.logToAPI(`Spieler ID: ${gameData.playerId}`);
             this.logToAPI(`Punktzahl: ${gameData.score}`);
             this.logToAPI(`Genauigkeit: ${gameData.accuracy}%`);
-            
-            // Hier würde der echte API-Call stehen:
-            // const response = await fetch('https://api.learningview.org/game-results', {
-            //     method: 'POST',
-            //     headers: { 
-            //         'Content-Type': 'application/json',
-            //         'Authorization': 'Bearer YOUR_API_KEY'
-            //     },
-            //     body: JSON.stringify(gameData)
-            // });
             
             // Simulation einer API-Anfrage (2 Sekunden)
             await new Promise(resolve => setTimeout(resolve, 2000));
@@ -502,6 +664,7 @@ class WordGame {
     }
     
     restartGame() {
+        console.log('Spiel neustarten');
         this.endModal.style.display = 'none';
         this.buttons.start.disabled = false;
         this.feedbackMessage.textContent = 'Klicke auf "Spiel starten" um zu beginnen!';
@@ -511,16 +674,33 @@ class WordGame {
     }
     
     closeModal() {
+        console.log('Modal schließen');
         this.endModal.style.display = 'none';
     }
 }
 
 // Spiel initialisieren, wenn DOM geladen ist
 document.addEventListener('DOMContentLoaded', () => {
-    const game = new WordGame();
-    window.wordGame = game; // Für Debugging verfügbar machen
-    
-    // Initiale Nachricht
-    game.logToAPI('Spiel geladen und bereit');
-    game.logToAPI('Klicke auf "Spiel starten" um zu beginnen');
+    console.log('DOM geladen, initialisiere Spiel...');
+    try {
+        const game = new WordGame();
+        window.wordGame = game; // Für Debugging verfügbar machen
+        
+        // Initiale Nachricht
+        game.logToAPI('Spiel geladen und bereit');
+        game.logToAPI('Klicke auf "Spiel starten" um zu beginnen');
+        
+        console.log('Spiel erfolgreich initialisiert');
+        
+        // Debug: Prüfe ob Elemente existieren
+        console.log('Elemente gefunden:', {
+            startBtn: document.getElementById('start-btn'),
+            wordDisplay: document.getElementById('word-text'),
+            categoryBtns: document.querySelectorAll('.category-btn').length
+        });
+        
+    } catch (error) {
+        console.error('Fehler beim Initialisieren des Spiels:', error);
+        document.getElementById('feedback-message').textContent = 'Fehler beim Laden des Spiels: ' + error.message;
+    }
 });
